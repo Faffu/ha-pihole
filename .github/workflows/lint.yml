@@ -62,3 +62,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./tests/test_blocklists.sh
+      - run: ./tests/test_run.sh

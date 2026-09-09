@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1
+
+- Fix a startup crash when `web_password` is empty, which is the default. The
+  random password generator piped `/dev/urandom` into `head`, so `head` exiting
+  killed the producer with SIGPIPE and `set -o pipefail` aborted the script
+  before Pi-hole ever started. It now reads a fixed number of bytes instead.
+- Add a self-check that runs the startup script's option translation, including
+  the empty-password path that the crash was hiding in.
+
 ## 0.1.0
 
 Initial release.

@@ -4,9 +4,11 @@
 # the upstream Pi-hole entrypoint. Everything here must be idempotent.
 set -euo pipefail
 
-OPTIONS=/data/options.json
-DATA=/data/pihole
-PW_FILE=/data/.web_password
+# Overridable so the startup logic can be exercised outside a container.
+OPTIONS=${OPTIONS:-/data/options.json}
+DATA=${DATA:-/data/pihole}
+PW_FILE=${PW_FILE:-/data/.web_password}
+ETC_PIHOLE=${ETC_PIHOLE:-/etc/pihole}
 
 opt() { jq -r "$1" "${OPTIONS}"; }
 
@@ -16,13 +18,13 @@ log() { echo "  [ha] $*"; }
 # /data is the Supervisor-managed persistent volume and is included in
 # backups. Pi-hole insists on /etc/pihole, so point it at /data/pihole.
 mkdir -p "${DATA}"
-if [ ! -L /etc/pihole ]; then
-    if [ -d /etc/pihole ]; then
-        cp -an /etc/pihole/. "${DATA}/" 2>/dev/null || true
-        rm -rf /etc/pihole
+if [ ! -L "${ETC_PIHOLE}" ]; then
+    if [ -d "${ETC_PIHOLE}" ]; then
+        cp -an "${ETC_PIHOLE}/." "${DATA}/" 2>/dev/null || true
+        rm -rf "${ETC_PIHOLE}"
     fi
-    ln -s "${DATA}" /etc/pihole
-    log "Linked /etc/pihole to ${DATA}"
+    ln -s "${DATA}" "${ETC_PIHOLE}"
+    log "Linked ${ETC_PIHOLE} to ${DATA}"
 fi
 
 # --- Timezone --------------------------------------------------------------
@@ -65,7 +67,10 @@ export FTLCONF_dhcp_active=false
 WEB_PASSWORD="$(opt '.web_password // ""')"
 if [ -z "${WEB_PASSWORD}" ]; then
     if [ ! -s "${PW_FILE}" ]; then
-        tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24 >"${PW_FILE}"
+        # Read a fixed number of bytes rather than trimming an endless stream.
+        # Piping /dev/urandom into head kills the producer with SIGPIPE, which
+        # under `set -o pipefail` aborts this script.
+        od -An -tx1 -N18 /dev/urandom | tr -d ' \n' >"${PW_FILE}"
         chmod 0600 "${PW_FILE}"
     fi
     WEB_PASSWORD="$(cat "${PW_FILE}")"
@@ -75,6 +80,11 @@ if [ -z "${WEB_PASSWORD}" ]; then
 fi
 export FTLCONF_webserver_api_password="${WEB_PASSWORD}"
 unset WEB_PASSWORD
+
+if [ -n "${HA_PIHOLE_DRY_RUN:-}" ]; then
+    log "Dry run, not starting Pi-hole."
+    exit 0
+fi
 
 # --- Blocklists ------------------------------------------------------------
 # Runs in the background because it talks to the Pi-hole REST API, which only
