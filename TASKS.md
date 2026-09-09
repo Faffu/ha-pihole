@@ -66,13 +66,14 @@
 ## Phase 6 — HAOS validation
 
 Run on Home Assistant OS 18.2, generic-x86-64, Supervisor add-on installed from
-the published repository and GHCR image. Only the host reboot is outstanding.
+the published repository and GHCR image. All items below have been checked on
+that hardware.
 
 Test on real HAOS:
 
 - [x] clean install
 - [x] start/stop/restart
-- [ ] reboot
+- [x] reboot
 - [x] DNS UDP
 - [x] DNS TCP
 - [x] upstream resolution
