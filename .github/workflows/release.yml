@@ -76,7 +76,8 @@ jobs:
         uses: home-assistant/builder/actions/publish-multi-arch-manifest@2026.06.0
         with:
           architectures: ${{ env.ARCHITECTURES }}
-          image-name: ${{ env.IMAGE_PREFIX }}/${{ env.IMAGE_NAME }}
+          registry-prefix: ${{ env.IMAGE_PREFIX }}
+          image-name: ${{ env.IMAGE_NAME }}
           image-tags: |
             ${{ needs.init.outputs.version }}
             latest
