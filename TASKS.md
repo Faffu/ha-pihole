@@ -4,7 +4,7 @@
 
 - [x] Verify current stable Pi-hole v6 Docker release.
 - [x] Verify whether the upstream Pi-hole image can be safely used as the App base.
-- [ ] Verify HAOS port 53 mapping behavior on a clean test host.
+- [x] Verify HAOS port 53 mapping behavior on a clean test host.
 - [x] Verify Pi-hole web UI behavior through Home Assistant Ingress.
 - [x] Decide persistent storage mapping.
 - [x] Decide exact App config schema.
@@ -29,7 +29,7 @@
 ## Phase 2 — Web UI
 
 - [x] Test direct Web UI.
-- [ ] Test HA Ingress.
+- [x] Test HA Ingress.
 - [x] Implement Ingress only if reliable.
 - [ ] Add sidebar presentation if Ingress is reliable.
 - [x] Add watchdog/healthcheck.
@@ -49,7 +49,7 @@
 
 - [x] Verify persistent state coverage.
 - [x] Determine hot vs cold backup.
-- [ ] Test restore.
+- [x] Test restore.
 - [x] document restore behavior.
 
 ## Phase 5 — CI/CD
@@ -65,29 +65,29 @@
 
 ## Phase 6 — HAOS validation
 
-Not started. Nothing in this phase has been run on real Home Assistant OS
-hardware. Local container smoke tests are not a substitute.
+Run on Home Assistant OS 18.2, generic-x86-64, Supervisor add-on installed from
+the published repository and GHCR image. Only the host reboot is outstanding.
 
 Test on real HAOS:
 
-- [ ] clean install
-- [ ] start/stop/restart
+- [x] clean install
+- [x] start/stop/restart
 - [ ] reboot
-- [ ] DNS UDP
-- [ ] DNS TCP
-- [ ] upstream resolution
-- [ ] blocking
-- [ ] Pi-hole UI
-- [ ] App config changes
-- [ ] profile changes
-- [ ] custom blocklists
-- [ ] backup
-- [ ] restore
-- [ ] upgrade
-- [ ] logs contain no password
-- [ ] UDP 67 closed
-- [ ] no DHCP service
-- [ ] no unnecessary capabilities
+- [x] DNS UDP
+- [x] DNS TCP
+- [x] upstream resolution
+- [x] blocking
+- [x] Pi-hole UI
+- [x] App config changes
+- [x] profile changes
+- [x] custom blocklists
+- [x] backup
+- [x] restore
+- [x] upgrade
+- [x] logs contain no password
+- [x] UDP 67 closed
+- [x] no DHCP service
+- [x] no unnecessary capabilities
 
 ## Phase 7 — Documentation / release
 

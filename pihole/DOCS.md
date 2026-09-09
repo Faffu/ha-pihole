@@ -140,7 +140,7 @@ All Pi-hole state lives in `/data` inside the App: configuration, the gravity
 database, adlists, groups, clients, local DNS records and allowlists. Upgrading
 the App replaces the container but keeps `/data`, so nothing is lost.
 
-Supervisor backups of this App are cold. Home Assistant stops the App, copies
+Backups of this App are cold. Home Assistant stops the App, copies
 `/data`, and starts it again, because copying the SQLite databases while
 Pi-hole is writing to them can produce a corrupt copy. DNS is unavailable for
 the length of the backup, which is normally seconds but grows with the size of
