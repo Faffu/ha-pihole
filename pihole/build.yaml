@@ -1,0 +1,8 @@
+---
+# Pinned upstream Pi-hole v6 image. Never use a floating tag here.
+build_from:
+  amd64: pihole/pihole:2026.07.2
+  aarch64: pihole/pihole:2026.07.2
+labels:
+  org.opencontainers.image.source: https://github.com/Faffu/ha-pihole
+  org.opencontainers.image.licenses: MIT

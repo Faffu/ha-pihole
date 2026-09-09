@@ -1,0 +1,64 @@
+---
+name: Lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ShellCheck
+        run: shellcheck -e SC1091 -x pihole/*.sh scripts/*.sh tests/*.sh
+
+  yaml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: yamllint
+        run: yamllint -d relaxed .
+
+  addon-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Home Assistant App config linter
+        uses: frenck/action-addon-linter@v2
+        with:
+          path: "./pihole"
+      - name: Validate repository structure
+        run: |
+          python3 - <<'PY'
+          import sys, yaml
+          cfg = yaml.safe_load(open("pihole/config.yaml"))
+          required = {"name", "version", "slug", "description", "arch", "image"}
+          missing = required - cfg.keys()
+          assert not missing, f"config.yaml missing keys: {missing}"
+          assert set(cfg["arch"]) == {"amd64", "aarch64"}, cfg["arch"]
+          ports = cfg["ports"]
+          assert ports["53/tcp"] == 53 and ports["53/udp"] == 53, ports
+          assert not any(str(p).startswith("67") for p in ports), "DHCP port exposed"
+          assert "privileged" not in cfg, "no extra capabilities are allowed"
+          assert cfg.get("host_network") is not True, "host networking is not allowed"
+          opts, schema = cfg["options"], cfg["schema"]
+          assert opts.keys() == schema.keys(), (opts.keys() ^ schema.keys())
+          for lang in ("en", "it"):
+              tr = yaml.safe_load(open(f"pihole/translations/{lang}.yaml"))
+              extra = opts.keys() ^ tr["configuration"].keys()
+              assert not extra, f"{lang}.yaml out of sync: {extra}"
+          print("config.yaml, schema and translations are consistent")
+          PY
+
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/check_version.sh
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./tests/test_blocklists.sh

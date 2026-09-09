@@ -1,0 +1,39 @@
+---
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        arch:
+          - amd64
+          - aarch64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify version consistency
+        run: ./scripts/check_version.sh
+      - uses: docker/setup-qemu-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push ${{ matrix.arch }} image
+        uses: home-assistant/builder@master
+        with:
+          args: |
+            --${{ matrix.arch }} \
+            --target /data/pihole \
+            --image ha-pihole-{arch} \
+            --docker-hub ghcr.io/${{ github.repository_owner }}

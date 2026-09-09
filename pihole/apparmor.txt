@@ -1,0 +1,40 @@
+#include <tunables/global>
+
+profile pihole flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+
+  # Deliberately broad on files: Pi-hole's FTL, gravity and the bundled
+  # cron/logrotate jobs touch a wide part of the filesystem. The value of this
+  # profile is capability and mount confinement, not path confinement.
+  file,
+  signal,
+  ptrace peer=pihole,
+
+  # No new privileges, no mounting, no kernel module or raw device access.
+  deny @{PROC}/sys/kernel/** w,
+  deny mount,
+  deny umount,
+  deny /sys/kernel/security/** rwklx,
+  deny /sys/firmware/** rwklx,
+
+  capability chown,
+  capability dac_override,
+  capability fowner,
+  capability fsetid,
+  capability kill,
+  capability setgid,
+  capability setuid,
+  capability setpcap,
+  capability net_bind_service,
+  capability net_raw,
+  capability sys_chroot,
+
+  # DHCP is out of scope for this App. FTL cannot configure interfaces.
+  deny capability net_admin,
+
+  network inet dgram,
+  network inet stream,
+  network inet6 dgram,
+  network inet6 stream,
+  network netlink raw,
+}

@@ -1,0 +1,45 @@
+---
+configuration:
+  timezone:
+    name: Timezone
+    description: >-
+      IANA timezone used for Pi-hole logs and statistics, for example
+      Europe/Rome.
+  upstream_dns:
+    name: Upstream DNS servers
+    description: >-
+      Resolvers Pi-hole forwards to when a query is not blocked or cached.
+  web_password:
+    name: Admin password
+    description: >-
+      Password for the Pi-hole web interface. Leave empty to have a random one
+      generated on first start and stored in /data/.web_password.
+  dnssec:
+    name: DNSSEC validation
+    description: >-
+      Validate DNSSEC signatures. Requires upstream resolvers that support it.
+  conditional_forwarding:
+    name: Conditional forwarding
+    description: >-
+      Forward reverse lookups for your LAN to your router so client names
+      appear in the query log. Format cidr,router-ip[,local-domain], for
+      example 192.168.1.0/24,192.168.1.1,lan. Leave empty to disable.
+  manage_blocklists:
+    name: Manage blocklists
+    description: >-
+      Let the App maintain the blocklists of the selected profile. Lists you
+      added yourself are never touched, whether this is on or off.
+  blocklist_profile:
+    name: Blocklist profile
+    description: >-
+      balanced is HaGeZi Multi PRO. security adds the Threat Intelligence
+      Feeds and needs more memory. strict uses HaGeZi Multi PRO++ and breaks
+      more sites. none installs nothing.
+  custom_blocklists:
+    name: Custom blocklists
+    description: >-
+      Extra blocklist URLs to keep installed alongside the profile.
+network:
+  53/tcp: DNS over TCP
+  53/udp: DNS over UDP
+  80/tcp: Pi-hole admin interface (LAN only)
