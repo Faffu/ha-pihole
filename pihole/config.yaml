@@ -1,0 +1,47 @@
+---
+name: Pi-hole
+version: "0.1.2"
+slug: pihole
+description: Pi-hole v6 network-wide DNS filtering (no DHCP)
+url: https://github.com/Faffu/ha-pihole/tree/main/pihole
+arch:
+  - amd64
+  - aarch64
+image: ghcr.io/faffu/{arch}-ha-pihole
+init: false
+startup: services
+# Cold backup: Pi-hole's gravity/FTL SQLite databases are copied while the
+# container is stopped, which is the only way to guarantee a consistent copy.
+# DNS is unavailable for the duration of the backup.
+backup: cold
+webui: http://[HOST]:[PORT:80]/admin
+ports:
+  53/tcp: 53
+  53/udp: 53
+  80/tcp: 8080
+ports_description:
+  53/tcp: DNS over TCP. Required.
+  53/udp: DNS over UDP. Required.
+  80/tcp: Pi-hole admin web interface. LAN only, never forward from the Internet.
+options:
+  timezone: Europe/Rome
+  upstream_dns:
+    - 1.1.1.1
+    - 1.0.0.1
+  web_password: ""
+  dnssec: false
+  conditional_forwarding: ""
+  manage_blocklists: true
+  blocklist_profile: balanced
+  custom_blocklists: []
+schema:
+  timezone: str
+  upstream_dns:
+    - str
+  web_password: password?
+  dnssec: bool
+  conditional_forwarding: str?
+  manage_blocklists: bool
+  blocklist_profile: list(balanced|security|strict|none)
+  custom_blocklists:
+    - url
