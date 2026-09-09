@@ -9,6 +9,8 @@ on:
 env:
   ARCHITECTURES: '["amd64", "aarch64"]'
   IMAGE_NAME: ha-pihole
+  # GHCR repository names must be lowercase; the owner login is not.
+  IMAGE_PREFIX: ghcr.io/faffu
 
 permissions:
   contents: read
@@ -52,7 +54,7 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           context: ./pihole
-          image: ${{ matrix.image }}
+          image: ${{ env.IMAGE_PREFIX }}/${{ matrix.arch }}-${{ env.IMAGE_NAME }}
           image-tags: |
             ${{ needs.init.outputs.version }}
             latest
@@ -74,7 +76,7 @@ jobs:
         uses: home-assistant/builder/actions/publish-multi-arch-manifest@2026.06.0
         with:
           architectures: ${{ env.ARCHITECTURES }}
-          image-name: ${{ env.IMAGE_NAME }}
+          image-name: ${{ env.IMAGE_PREFIX }}/${{ env.IMAGE_NAME }}
           image-tags: |
             ${{ needs.init.outputs.version }}
             latest
