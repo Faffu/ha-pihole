@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.2
+
+- Fix Pi-hole failing to start under the App's AppArmor profile. The profile
+  enumerated capabilities and left out `setfcap`, which Pi-hole needs to put
+  file capabilities on `pihole-FTL` so it can bind port 53 as a non-root user.
+  The profile now allows the container's default capability set and denies
+  `net_admin` explicitly, which is the confinement that actually matters here.
+- Stop downloading a blocklist nobody asked for on a fresh install. Pi-hole
+  created its own default adlist and ran Gravity against it before the selected
+  profile was applied, so every new install fetched an unrelated list and then
+  ran Gravity a second time.
+
 ## 0.1.1
 
 - Fix a startup crash when `web_password` is empty, which is the default. The

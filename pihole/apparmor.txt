@@ -8,7 +8,7 @@ profile pihole flags=(attach_disconnected,mediate_deleted) {
   # profile is capability and mount confinement, not path confinement.
   file,
   signal,
-  ptrace peer=pihole,
+  ptrace,
 
   # No new privileges, no mounting, no kernel module or raw device access.
   deny @{PROC}/sys/kernel/** w,
@@ -17,24 +17,17 @@ profile pihole flags=(attach_disconnected,mediate_deleted) {
   deny /sys/kernel/security/** rwklx,
   deny /sys/firmware/** rwklx,
 
-  capability chown,
-  capability dac_override,
-  capability fowner,
-  capability fsetid,
-  capability kill,
-  capability setgid,
-  capability setuid,
-  capability setpcap,
-  capability net_bind_service,
-  capability net_raw,
-  capability sys_chroot,
+  # Supervisor grants no extra capabilities to this App, so the container only
+  # ever holds Docker's default set. Enumerating that set here just makes the
+  # profile break when the base image needs one more of them, so allow the
+  # default set and deny the ones that would actually widen the App's reach.
+  # Pi-hole needs setfcap to put file capabilities on pihole-FTL, which is how
+  # FTL binds port 53 while running as a non-root user.
+  capability,
 
   # DHCP is out of scope for this App. FTL cannot configure interfaces.
   deny capability net_admin,
 
-  network inet dgram,
-  network inet stream,
-  network inet6 dgram,
-  network inet6 stream,
-  network netlink raw,
+  # FTL needs raw sockets and netlink for DNS, ARP and interface discovery.
+  network,
 }

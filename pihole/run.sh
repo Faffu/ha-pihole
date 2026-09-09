@@ -87,6 +87,18 @@ if [ -n "${HA_PIHOLE_DRY_RUN:-}" ]; then
 fi
 
 # --- Blocklists ------------------------------------------------------------
+# On a fresh volume Pi-hole creates its own adlists.list containing a default
+# blocklist and runs Gravity against it before FTL starts. That download is
+# wasted work, because the profile reconciliation below replaces those lists
+# and runs Gravity again. Seed an empty file so the first pass has nothing to
+# fetch and only the selected profile is ever downloaded.
+if [ "$(opt '.manage_blocklists // true')" = "true" ] \
+    && [ ! -e "${DATA}/gravity.db" ] && [ ! -e "${DATA}/adlists.list" ]; then
+    : >"${DATA}/adlists.list"
+    log "Fresh install, seeded an empty adlists.list so only the profile is fetched."
+fi
+
+# --- Blocklist reconciliation ----------------------------------------------
 # Runs in the background because it talks to the Pi-hole REST API, which only
 # answers once FTL is up. It inherits the API password from the environment.
 if [ "$(opt '.manage_blocklists // true')" = "true" ]; then
