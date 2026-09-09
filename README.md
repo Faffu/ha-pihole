@@ -34,6 +34,23 @@ The App documentation is in [pihole/DOCS.md](pihole/DOCS.md).
 | `TASKS.md` | Phased implementation plan. |
 | `AGENTS.md`, `CLAUDE.md` | Agent development instructions. |
 
+## Testing on Home Assistant OS
+
+This repository is private, so Supervisor cannot add it as an App repository
+and cannot pull the GHCR images without credentials. Install it as a local App
+instead, which also makes Supervisor build the image on the machine you are
+testing on:
+
+1. Copy the `pihole/` directory to `/addons/pihole` on the Home Assistant host,
+   over Samba or the SSH App.
+2. Delete the `image:` line from `/addons/pihole/config.yaml`. While that line
+   is present Supervisor pulls a published image instead of building locally.
+3. In Home Assistant, Settings, Add-ons, Add-on Store, three-dot menu, Check
+   for updates. Pi-hole appears under Local add-ons.
+
+Making the repository public, or configuring registry credentials in
+Supervisor, is what enables the normal repository install path.
+
 ## Development
 
 ```bash

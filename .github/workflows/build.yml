@@ -7,22 +7,45 @@ on:
       - main
   pull_request:
 
+env:
+  ARCHITECTURES: '["amd64", "aarch64"]'
+  IMAGE_NAME: ha-pihole
+
+permissions:
+  contents: read
+
 jobs:
-  build:
-    name: Build ${{ matrix.arch }}
+  init:
+    name: Initialize build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch:
-          - amd64
-          - aarch64
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - name: Build ${{ matrix.arch }} image
-        uses: home-assistant/builder@master
+      - uses: actions/checkout@v6
+      - name: Get build matrix
+        id: matrix
+        uses: home-assistant/builder/actions/prepare-multi-arch-matrix@2026.06.0
         with:
-          args: |
-            --test \
-            --${{ matrix.arch }} \
-            --target /data/pihole
+          architectures: ${{ env.ARCHITECTURES }}
+          image-name: ${{ env.IMAGE_NAME }}
+
+  build:
+    name: Build ${{ matrix.arch }} image
+    needs: init
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build image
+        uses: home-assistant/builder/actions/build-image@2026.06.0
+        with:
+          arch: ${{ matrix.arch }}
+          context: ./pihole
+          image: ${{ matrix.image }}
+          image-tags: dev
+          version: dev
+          push: "false"
+          cosign: "false"
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}

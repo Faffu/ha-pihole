@@ -2,38 +2,80 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types:
+      - published
+
+env:
+  ARCHITECTURES: '["amd64", "aarch64"]'
+  IMAGE_NAME: ha-pihole
+
+permissions:
+  contents: read
 
 jobs:
-  publish:
-    name: Publish ${{ matrix.arch }}
+  init:
+    name: Initialize release
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify version consistency
+        id: version
+        run: |
+          ./scripts/check_version.sh
+          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Get build matrix
+        id: matrix
+        uses: home-assistant/builder/actions/prepare-multi-arch-matrix@2026.06.0
+        with:
+          architectures: ${{ env.ARCHITECTURES }}
+          image-name: ${{ env.IMAGE_NAME }}
+
+  build:
+    name: Publish ${{ matrix.arch }} image
+    needs: init
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
+      id-token: write
       packages: write
     strategy:
-      matrix:
-        arch:
-          - amd64
-          - aarch64
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Verify version consistency
-        run: ./scripts/check_version.sh
-      - uses: docker/setup-qemu-action@v3
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - uses: actions/checkout@v6
+      - name: Build and push image
+        uses: home-assistant/builder/actions/build-image@2026.06.0
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push ${{ matrix.arch }} image
-        uses: home-assistant/builder@master
+          arch: ${{ matrix.arch }}
+          context: ./pihole
+          image: ${{ matrix.image }}
+          image-tags: |
+            ${{ needs.init.outputs.version }}
+            latest
+          version: ${{ needs.init.outputs.version }}
+          push: "true"
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+
+  manifest:
+    name: Publish multi-arch manifest
+    needs:
+      - init
+      - build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      packages: write
+    steps:
+      - name: Publish multi-arch manifest
+        uses: home-assistant/builder/actions/publish-multi-arch-manifest@2026.06.0
         with:
-          args: |
-            --${{ matrix.arch }} \
-            --target /data/pihole \
-            --image ha-pihole-{arch} \
-            --docker-hub ghcr.io/${{ github.repository_owner }}
+          architectures: ${{ env.ARCHITECTURES }}
+          image-name: ${{ env.IMAGE_NAME }}
+          image-tags: |
+            ${{ needs.init.outputs.version }}
+            latest
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}

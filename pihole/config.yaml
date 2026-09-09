@@ -7,16 +7,13 @@ url: https://github.com/Faffu/ha-pihole/tree/main/pihole
 arch:
   - amd64
   - aarch64
-image: ghcr.io/faffu/ha-pihole-{arch}
+image: ghcr.io/faffu/{arch}-ha-pihole
 init: false
 startup: services
-boot: auto
 # Cold backup: Pi-hole's gravity/FTL SQLite databases are copied while the
 # container is stopped, which is the only way to guarantee a consistent copy.
 # DNS is unavailable for the duration of the backup.
 backup: cold
-apparmor: true
-watchdog: tcp://[HOST]:[PORT:80]
 webui: http://[HOST]:[PORT:80]/admin
 ports:
   53/tcp: 53
